@@ -1,91 +1,75 @@
-import { View, Text, ScrollView, FlatList, StyleSheet, ActivityIndicator } from "react-native";
-import { useState, useEffect } from "react";
-import { styles } from "../components/styles";
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import axios from "axios";
-
-const LoadMoreItem = () => {
-    console.log('load more data')
-}
-
+import React, { useState, useEffect } from 'react';
+import { FlatList, Text, View, ActivityIndicator } from 'react-native';
+import { styles } from '../components/styles';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import axios from 'axios';
 
 const Currentaffairs = () => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [currentPage, setCurrentPage] = useState(1);
+    const [data, setData] = useState([]);
+    const [page, setPage] = useState(1);
+    const [isLoading, setLoading] = useState(true);
+    const [hasMoreQuestions, setHasMoreQuestions] = useState(true);
+    const [error, setError] = useState(null);
 
-    const renderLoader = () => {
+    useEffect(() => {
+        axios.get(`https://CompetativeQuiz.pythonanywhere.com/quiz/Currentapi/?page=${page}&page_size=10`)
+            .then((response) => {
+                const newData = response.data.results.filter((question) => {
+                    return !data.some((existingQuestion) => existingQuestion.id === question.id);
+                });
+                setData([...data, ...newData]);
+                setLoading(false);
+                setHasMoreQuestions(newData.length < response.data.count);
+            })
+            .catch((error) => {
+                setError(error);
+                setLoading(false);
+            });
+    }, [page]);
+
+    const renderFooter = () => {
+        if (!isLoading) return null;
         return (
-            loading ?
-                <View style={{}}>
-                    <ActivityIndicator size="large" color="#aaa" />
-                </View> : null
+            <View style={{ paddingVertical: 20 }}>
+                <ActivityIndicator size="large" />
+            </View>
         );
     };
 
-    const LoadMoreItem = () => {
-        setCurrentPage(currentPage + 1);
+    const renderEndMessage = () => {
+        if (!hasMoreQuestions) {
+            return (
+                <View style={{ padding: 16 }}>
+                    <Text>No more questions available. More questions are coming soon!</Text>
+                </View>
+            );
+        }
+        return null;
     };
 
-    const getData = () => {
-        setLoading(true);
-        axios.get(`https://CompetativeQuiz.pythonanywhere.com/quiz/Currentapi/?page=${currentPage}`)
-            .then(res => {
-                setData([...data, ...res.data.results]);
-                setLoading(false);
-            })
-            .catch(error => {
-                console.error(error);
-                setLoading(false);
-            });
-    }
-
-    // useEffect(() => {
-    //     const timeoutId = setTimeout(() => {
-    //         loading(true)
-    //         axios.get(`https://CompetativeQuiz.pythonanywhere.com/quiz/Currentapi/?page=${currentPage}`)
-    //             .then(res => {
-    //                 setData([...data, ...res.data.results]);
-    //                 setLoading(false);
-    //             })
-    //             .catch(error => {
-    //                 console.error(error);
-    //                 setLoading(false);
-    //             });
-    //     }, 3000);
-
-    //     return () => {
-    //         clearTimeout(timeoutId);
-    //     };
-    // }, [currentPage]);
-
-    useEffect(() => {
-        getData()
-    }, [currentPage])
+    const handleLoadMore = () => {
+        if (!isLoading && hasMoreQuestions) {
+            setPage(page + 1);
+            setLoading(true);
+        }
+    };
 
     return (
-        <View style={{ flex: 1 }}>
-            {loading ? (
-                <ActivityIndicator size="large" color="#1DA1F2" />
-            ) : (
-                <ScrollView>
-                    <FlatList
-                        data={data}
-                        renderItem={({ item, index }) =>
-                            <View style={styles.container}>
-                                <Text style={styles.questionText}>{`${index + 1}. ${item.question}`}</Text>
-                                <Text style={styles.answerText}><MaterialIcons name="arrow-right-alt" size={30} style={styles.arrowIcon} />{item.answer}</Text>
-                            </View>
-                        }
-                        keyExtractor={item => item.question}
-                        onEndReached={LoadMoreItem}
-                        onEndReachedThreshold={0}
-                        ListFooterComponent={renderLoader}
-                    />
-                </ScrollView>
-            )}
-        </View>
-    )
-}
+        <FlatList
+            data={data}
+            renderItem={({ item, index }) =>
+                <View style={styles.container}>
+                    <Text style={styles.questionText}>{`${index + 1}. ${item.question}`}</Text>
+                    <Text style={styles.answerText}><MaterialIcons name="arrow-right-alt" size={30} style={styles.arrowIcon} />{item.answer}</Text>
+                </View>
+            }
+            keyExtractor={(item) => item.id.toString()}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
+            ListFooterComponent={renderEndMessage}
+        />
+    );
+};
 
 export default Currentaffairs;

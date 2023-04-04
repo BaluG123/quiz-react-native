@@ -4,11 +4,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Home from "../screens/home";
 import Ncert from "../screens/ncert";
-import gk from "../screens/generalknowledge";
+import Generalknowledge from "../screens/generalknowledge";
 import Currentaffairs from "../screens/currentaffairs";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 const Tab = createBottomTabNavigator()
-import News from "../screens/news";
+
 
 const Navigation = () => {
     return (
@@ -56,7 +56,7 @@ const Navigation = () => {
                 <Tab.Screen name="Home" component={Home} />
                 <Tab.Screen name="Current Affairs" component={Currentaffairs} />
                 <Tab.Screen name="NCERT" component={Ncert} />
-                <Tab.Screen name="General Knowledge" component={gk} />
+                <Tab.Screen name="General Knowledge" component={Generalknowledge} />
             </Tab.Navigator>
         </NavigationContainer>
     )

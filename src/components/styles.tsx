@@ -38,6 +38,11 @@ export const styles = StyleSheet.create({
         width: 300,
         height: 180,
         aspectRatio: 1 * 1.4
+    },
+    separator: {
+        height: 1,
+        backgroundColor: "#ccc",
+        marginVertical: 10
     }
 });
 
